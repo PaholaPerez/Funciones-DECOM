@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comité de Comunicaciones Locales IPUC</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ipuc: {
+                            navy: '#0B192C',
+                            blue: '#1E3E62',
+                            cyan: '#00D1FF',
+                            gold: '#FFD700',
+                            goldDark: '#D4AF37',
+                            accent: '#0088FF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* 16:9 Stage Aspect Ratio Container */
+        .stage-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #112239 0%, #060d17 100%);
+        }
+
+        .slide-stage {
+            width: 1920px;
+            height: 1080px;
+            position: relative;
+            background: linear-gradient(135deg, rgba(11, 25, 44, 0.96) 0%, rgba(6, 13, 23, 0.99) 100%);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            transform-origin: center center;
+            border: 1px solid rgba(0, 209, 255, 0.2);
+        }
+
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(30, 62, 98, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(15, 32, 53, 0.65);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 209, 255, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 209, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -10px rgba(0, 209, 255, 0.25);
+        }
+
+        /* Slide Transition Animations */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            transform: scale(0.98) translateX(20px);
+            padding: 90px 100px 120px 100px;
+            box-sizing: border-box;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateX(0);
+            z-index: 10;
+        }
+
+        /* Glow effects */
+        .glow-text {
+            text-shadow: 0 0 18px rgba(0, 209, 255, 0.5);
+        }
+
+        .glow-gold {
+            text-shadow: 0 0 18px rgba(255, 215, 0, 0.4);
+        }
+
+        /* Custom Scrollbars */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 209, 255, 0.3);
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 209, 255, 0.6);
+        }
+    </style>
+</head>
+<body class="h-full select-none overflow-hidden bg-slate-950">
+
+    <!-- MAIN PRESENTATION STAGE CONTAINER -->
+    <div class="stage-container" id="stageContainer">
+        <div class="slide-stage rounded-2xl" id="slideStage">
+
+            <!-- BACKGROUND DECORATIVE GLOW ELEMENTS -->
+            <div class="absolute -top-40 -left-40 w-[500px] h-[500px] bg-ipuc-cyan/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-40 -right-40 w-[500px] h-[500px] bg-ipuc-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- TOP HEADER BAR -->
+            <header id="topHeader" class="absolute top-0 left-0 w-full h-20 px-16 flex items-center justify-between border-b border-slate-800/80 z-20 bg-slate-950/50 backdrop-blur-md">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-ipuc-cyan to-ipuc-blue flex items-center justify-center font-bold text-slate-950 shadow-lg shadow-ipuc-cyan/20">
+                        <i class="fa-solid fa-cross text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-extrabold tracking-wider text-white">IPUC <span class="text-ipuc-cyan font-normal text-base">| Comunicaciones Locales</span></h1>
+                    </div>
+                </div>
+                <div id="slideTitleHeader" class="text-sm font-semibold text-slate-200 tracking-wider uppercase bg-slate-900/80 px-6 py-2 rounded-full border border-slate-800 shadow-inner">
+                    1. Portada
+                </div>
+                <div class="flex items-center space-x-6 text-sm text-slate-400">
+                    <span id="slideCounter" class="font-mono text-ipuc-cyan font-bold text-base">01 / 08</span>
+                </div>
+            </header>
+
+            <!-- ========================================================= -->
+            <!-- 1. PORTADA -->
+            <!-- ========================================================= -->
+            <div class="slide active flex flex-col justify-between items-center text-center relative overflow-hidden" data-title="1. Portada">
+                <div class="my-auto flex flex-col items-center max-w-5xl">
+                    <div class="inline-flex items-center space-x-3 px-6 py-2 rounded-full glass-panel border border-ipuc-cyan/30 text-ipuc-cyan mb-8 animate-pulse">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        <span class="text-sm font-semibold tracking-widest uppercase">Estructura &bull; Imagen &bull; Capacitación</span>
+                    </div>
+
+                    <h1 class="text-6xl font-black text-white tracking-tight leading-tight mb-6">
+                        Comité de <span class="bg-clip-text text-transparent bg-gradient-to-r from-ipuc-cyan via-blue-400 to-ipuc-gold glow-text">Comunicaciones Locales</span>
+                    </h1>
+
+                    <p class="text-2xl text-slate-300 font-light max-w-3xl leading-relaxed mb-12">
+                        Iglesia Pentecostal Unida de Colombia &bull; Guía Institucional de Funciones, Identidad Corporal y Taller Práctico.
+                    </p>
+
+                    <div class="flex items-center justify-center gap-6">
+                        <button onclick="nextSlide()" class="px-9 py-4 rounded-xl bg-gradient-to-r from-ipuc-cyan to-blue-600 text-slate-950 font-extrabold text-lg hover:brightness-110 transform hover:scale-105 transition-all shadow-xl shadow-ipuc-cyan/30 flex items-center space-x-3">
+                            <span>Iniciar Presentación</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button onclick="goToSlide(6)" class="px-8 py-4 rounded-xl glass-panel text-white font-semibold text-lg hover:bg-slate-800/60 transition-all border border-slate-700 flex items-center space-x-3">
+                            <i class="fa-solid fa-gamepad text-ipuc-gold"></i>
+                            <span>Ir al Taller Práctico</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="w-full grid grid-cols-3 gap-6 pt-8 border-t border-slate-800/80 text-left">
+                    <div class="glass-card p-4 rounded-xl flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-lg bg-ipuc-cyan/20 flex items-center justify-center text-ipuc-cyan text-xl"><i class="fa-solid fa-list-check"></i></div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-semibold">Sección 1</p>
+                            <p class="text-sm font-bold text-slate-200">Funciones del Comité</p>
+                        </div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-lg bg-ipuc-gold/20 flex items-center justify-center text-ipuc-gold text-xl"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-semibold">Sección 2</p>
+                            <p class="text-sm font-bold text-slate-200">Nuestra Imagen IPUC</p>
+                        </div>
+                    </div>
+                    <div class="glass-card p-4 rounded-xl flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400 text-xl"><i class="fa-solid fa-laptop-code"></i></div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-semibold">Sección 3</p>
+                            <p class="text-sm font-bold text-slate-200">Dinámica de Aprendizaje</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- 2. FUNCIONES DEL COMITÉ DE COMUNICACIONES LOCALES -->
+            <!-- ========================================================= -->
+
+            <!-- SLIDE 2.1: ESTRUCTURA LOCAL & DIRECTOR GENERAL -->
+            <div class="slide flex flex-col justify-between" data-title="2. Funciones: Estructura y Director General">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <span class="text-xs font-bold text-ipuc-cyan uppercase tracking-widest">Estructura Local &bull; Nombrada por el Pastor</span>
+                        <h2 class="text-4xl font-bold text-white">Director General de Comunicaciones</h2>
+                    </div>
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-ipuc-cyan to-blue-700 flex items-center justify-center text-slate-950 text-3xl font-extrabold shadow-lg shadow-ipuc-cyan/20">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-8 my-auto">
+                    <!-- OBJETIVO Y NATURALEZA DE LA ESTRUCTURA -->
+                    <div class="col-span-5 space-y-4">
+                        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-ipuc-gold">
+                            <span class="text-xs text-ipuc-gold font-bold uppercase tracking-widest">Estructura Congregacional</span>
+                            <h3 class="text-xl font-bold text-white mt-1 mb-3"><i class="fa-solid fa-church mr-2 text-ipuc-gold"></i>Nombramiento Eclesial</h3>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                La estructura local del departamento de comunicaciones es <strong class="text-white">nombrada directamente por el Pastor local</strong> según las necesidades específicas de la congregación.
+                            </p>
+                        </div>
+
+                        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-ipuc-cyan">
+                            <h3 class="text-lg font-bold text-ipuc-cyan uppercase tracking-wider mb-2"><i class="fa-solid fa-bullseye mr-2"></i>Objetivos del Director</h3>
+                            <ul class="text-slate-200 text-sm space-y-2">
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-circle-dot text-ipuc-cyan mt-1 text-xs"></i> <span>Dirigir y gestionar todos los procesos del departamento local.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-circle-dot text-ipuc-cyan mt-1 text-xs"></i> <span>Promover el uso eficaz e integral de las comunicaciones.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-circle-dot text-ipuc-cyan mt-1 text-xs"></i> <span>Propender por la sinergia comunicativa entre todos los comités.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- FUNCIONES DETALLADAS -->
+                    <div class="col-span-7 glass-panel p-6 rounded-2xl overflow-hidden flex flex-col justify-between">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-list-check text-ipuc-cyan mr-2"></i>Funciones Detalladas del Director General</h3>
+                        <div class="space-y-3 custom-scroll overflow-y-auto max-h-[360px] pr-2">
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Coordinar Recursos:</strong> Coordinar el uso del recurso humano, técnico y económico a disposición del departamento.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Asesoría Eclesial:</strong> Asesorar a los comités locales en la propagación del Evangelio a través de plataformas digitales y medios.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Difusión de Información:</strong> Contribuir en la difusión a nombre de la iglesia, salvaguardando la identidad, principios y valores institucionales.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Imagen Corporativa:</strong> Velar rigurosamente por el buen uso de la imagen corporativa de la IPUC.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Planes y Procesos:</strong> Implementar proyectos que contribuyan al desarrollo y fortalecimiento comunicacional.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Creación y Promoción:</strong> Asesorar en creación de contenidos y promoción efectiva de programas congregacionales.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Administración Digital:</strong> Gestionar y administrar canales de difusión, redes sociales y plataformas de la iglesia.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 flex justify-between">
+                    <span>Estructura nombrada según necesidad por el Pastor local.</span>
+                    <span>Funciones Director General IPUC</span>
+                </div>
+            </div>
+
+            <!-- SLIDE 2.2: MEDIOS ESCRITOS & MEDIOS AUDIOVISUALES -->
+            <div class="slide flex flex-col justify-between" data-title="2. Funciones: Medios Escritos y Audiovisuales">
+                <div class="mb-4">
+                    <span class="text-xs font-bold text-ipuc-cyan uppercase tracking-widest">Funciones de Áreas Especializadas</span>
+                    <h2 class="text-4xl font-bold text-white">Medios Escritos & Medios Audiovisuales / TV</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8 my-auto">
+                    <!-- MEDIOS ESCRITOS -->
+                    <div class="glass-card p-6 rounded-2xl border-t-4 border-t-ipuc-cyan flex flex-col justify-between h-[520px]">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-2xl font-bold text-white flex items-center">
+                                    <i class="fa-solid fa-newspaper text-ipuc-cyan mr-3"></i> Medios Escritos
+                                </h3>
+                                <span class="text-xs bg-ipuc-cyan/20 text-ipuc-cyan font-semibold px-3 py-1 rounded-full">Redacción & Editorial</span>
+                            </div>
+
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 mb-3">
+                                <p class="text-xs text-ipuc-cyan font-bold uppercase mb-1">Objetivos:</p>
+                                <p class="text-xs text-slate-300 leading-relaxed">Promover el uso, creación y difusión de material escrito formativo, evangelístico e informativo. Brindar asesoría en edición, impresión y conservación salvaguardando la doctrina e imagen corporativa.</p>
+                            </div>
+
+                            <p class="text-xs font-bold text-slate-300 uppercase mb-2">Funciones Clave:</p>
+                            <ul class="space-y-1.5 text-xs text-slate-300 custom-scroll overflow-y-auto max-h-[250px] pr-1">
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Brindar asesoría y acompañamiento en materia escrita.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Proveer espacios de formación en producción y conservación escrita.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Promover creación de material escrito acorde a doctrina IPUC.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Impulsar canales efectivos para el manejo de información emitida.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Velar por la calidad, coherencia, ortografía y gramática.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span><strong class="text-white">Verificar Derechos de Autor:</strong> Proteger la propiedad intelectual.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Revisar cuidadosamente todo escrito antes de publicar.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- MEDIOS AUDIOVISUALES Y TV -->
+                    <div class="glass-card p-6 rounded-2xl border-t-4 border-t-ipuc-gold flex flex-col justify-between h-[520px]">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-2xl font-bold text-white flex items-center">
+                                    <i class="fa-solid fa-video text-ipuc-gold mr-3"></i> Audiovisuales y TV
+                                </h3>
+                                <span class="text-xs bg-ipuc-gold/20 text-ipuc-gold font-semibold px-3 py-1 rounded-full">Producción & Streaming</span>
+                            </div>
+
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 mb-3">
+                                <p class="text-xs text-ipuc-gold font-bold uppercase mb-1">Objetivo:</p>
+                                <p class="text-xs text-slate-300 leading-relaxed">Brindar asesoría en producción, edición y realización de fotografías, videos y transmisiones orientados hacia la calidad, seriedad y buen manejo de la información.</p>
+                            </div>
+
+                            <p class="text-xs font-bold text-slate-300 uppercase mb-2">Funciones Clave:</p>
+                            <ul class="space-y-2 text-xs text-slate-300 custom-scroll overflow-y-auto max-h-[250px] pr-1">
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Elaborar e implementar la <strong class="text-white">parrilla de programación</strong> de difusión.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Realizar la producción audiovisual de eventos (transmisión en vivo y grabación).</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Garantizar excelencia técnica: <strong class="text-white">sonido, iluminación, escenografía y fotografía</strong>.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Proveer espacios de formación y talleres en producción audiovisual.</span></li>
+                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Velar por el uso correcto de la imagen corporativa en producciones.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 text-center">
+                    Calidad técnica y corrección editorial unidas para la proclamación veraz del Evangelio.
+                </div>
+            </div>
+
+            <!-- SLIDE 2.3: MEDIOS DIGITALES -->
+            <div class="slide flex flex-col justify-between" data-title="2. Funciones: Medios Digitales">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <span class="text-xs font-bold text-ipuc-cyan uppercase tracking-widest">Funciones de Áreas Especializadas</span>
+                        <h2 class="text-4xl font-bold text-white">Medios Digitales y Redes Sociales</h2>
+                    </div>
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-ipuc-cyan flex items-center justify-center text-slate-950 text-3xl font-extrabold shadow-lg shadow-ipuc-cyan/20">
+                        <i class="fa-solid fa-hashtag"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-8 my-auto">
+                    <!-- OBJETIVO DIGITAL -->
+                    <div class="col-span-5 space-y-4">
+                        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-ipuc-cyan">
+                            <h3 class="text-lg font-bold text-ipuc-cyan uppercase tracking-wider mb-3"><i class="fa-solid fa-globe mr-2"></i>Objetivo de Medios Digitales</h3>
+                            <p class="text-slate-200 text-sm leading-relaxed">
+                                Brindar asesoría en producción, edición y realización de contenidos para plataformas digitales, orientados hacia la calidad, seriedad, ciberseguridad y buen uso de la imagen corporativa en internet.
+                            </p>
+                        </div>
+
+                        <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex items-center space-x-4">
+                            <i class="fa-solid fa-comments text-3xl text-ipuc-gold"></i>
+                            <div>
+                                <h4 class="text-white font-bold text-sm">Canales de Atención Oficial</h4>
+                                <p class="text-slate-400 text-xs">Atención oportuna, amable y respetuosa a los chats e interacciones en redes oficiales.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FUNCIONES CLAVE -->
+                    <div class="col-span-7 glass-panel p-6 rounded-2xl overflow-hidden flex flex-col justify-between">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-list-check text-ipuc-cyan mr-2"></i>Funciones Específicas de Medios Digitales</h3>
+                        <div class="space-y-3 custom-scroll overflow-y-auto max-h-[340px] pr-2">
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-laptop-code text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Mantenimiento Web:</strong> Liderar el proceso de mantenimiento y actualización de las páginas web de la iglesia.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-shield-halved text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Seguridad Digital:</strong> Administrar la seguridad de las redes sociales y plataformas digitales oficial de la congregación.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-bullhorn text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Marketing Digital:</strong> Planear estrategias de difusión de los eventos mediante campañas de marketing digital.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-chart-line text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Estadísticas:</strong> Realizar permanentemente seguimiento estadístico a las diferentes plataformas y alcance.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-message text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Atención Oficial:</strong> Atender los chats y mensajes directos que entran por los canales oficiales.</p>
+                            </div>
+                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                                <i class="fa-solid fa-image text-ipuc-cyan mt-1"></i>
+                                <p class="text-slate-300 text-sm"><strong class="text-white">Imagen Institucional:</strong> Velar por el buen uso de la imagen corporativa en todas las publicaciones digitales.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 text-center">
+                    Estrategia digital enfocada en la evangelización y edificación con alta responsabilidad institucional.
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- 3. NUESTRA IMAGEN -->
+            <!-- ========================================================= -->
+
+            <!-- SLIDE 3.1: IDENTIDAD VS IMAGEN CORPORATIVA -->
+            <div class="slide flex flex-col justify-between" data-title="3. Nuestra Imagen: Identidad vs Imagen">
+                <div class="mb-4">
+                    <span class="text-xs font-bold text-ipuc-gold uppercase tracking-widest">Nuestra Imagen IPUC</span>
+                    <h2 class="text-4xl font-bold text-white">Identidad Corporativa vs. Imagen Corporativa</h2>
+                    <p class="text-slate-400 text-base">Comprender la diferencia esencial entre la esencia institucional y la percepción del público.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8 my-auto">
+                    <!-- IDENTIDAD CORPORATIVA -->
+                    <div class="glass-card p-8 rounded-2xl border-l-4 border-l-ipuc-cyan relative">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs uppercase font-bold tracking-widest text-ipuc-cyan bg-ipuc-cyan/10 px-3 py-1 rounded-full">Lo que somos (Esencia)</span>
+                            <i class="fa-solid fa-id-card text-3xl text-ipuc-cyan"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-4">Identidad Corporativa</h3>
+                        <p class="text-slate-300 text-base leading-relaxed mb-6">
+                            Es la manifestación directa de lo que la iglesia es: <strong class="text-white">su esencia, sus valores y lo que desea transmitir</strong>.
+                        </p>
+                        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                            <p class="text-sm text-slate-300"><i class="fa-solid fa-check-circle text-green-400 mr-2"></i> Es <strong class="text-white">creada, definida y controlada directamente</strong> por la organización a través de sus principios bíblicos y directrices.</p>
+                        </div>
+                    </div>
+
+                    <!-- IMAGEN CORPORATIVA -->
+                    <div class="glass-card p-8 rounded-2xl border-l-4 border-l-ipuc-gold relative">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs uppercase font-bold tracking-widest text-ipuc-gold bg-ipuc-gold/10 px-3 py-1 rounded-full">Lo que perciben (Mente)</span>
+                            <i class="fa-solid fa-brain text-3xl text-ipuc-gold"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold text-white mb-4">Imagen Corporativa</h3>
+                        <p class="text-slate-300 text-base leading-relaxed mb-6">
+                            Es la <strong class="text-white">percepción, interpretación y recuerdo</strong> que el público objetivo y la sociedad tienen sobre la organización.
+                        </p>
+                        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                            <p class="text-sm text-slate-300"><i class="fa-solid fa-clock-rotate-left text-ipuc-gold mr-2"></i> <strong class="text-white">No se impone directamente</strong>; se construye gradualmente en la mente de las personas con base en experiencias y tiempo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl border border-ipuc-cyan/30 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-full bg-ipuc-cyan/20 flex items-center justify-center text-ipuc-cyan text-xl font-bold">!</div>
+                        <div>
+                            <h4 class="text-white font-bold text-base">Meta del Comité de Comunicaciones</h4>
+                            <p class="text-slate-300 text-xs">Garantizar que la <strong class="text-ipuc-gold">Imagen Corporativa</strong> (percepción del público) corresponda fielmente con la <strong class="text-ipuc-cyan">Identidad Corporativa</strong> (principios bíblicos y doctrina IPUC).</p>
+                        </div>
+                    </div>
+                </div>
