@@ -34,33 +34,118 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
-            overflow: hidden;
             user-select: none;
         }
 
-        /* 16:9 Presentation Stage Aspect Ratio Container */
-        .stage-container {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle at center, #112239 0%, #060d17 100%);
+        /* Desktop Stage Container (Escritorio / Proyector) */
+        @media (min-width: 1024px) {
+            body {
+                overflow: hidden;
+            }
+            .stage-container {
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: radial-gradient(circle at center, #112239 0%, #060d17 100%);
+            }
+            .slide-stage {
+                width: 1920px;
+                height: 1080px;
+                position: relative;
+                background: linear-gradient(135deg, rgba(11, 25, 44, 0.95) 0%, rgba(6, 13, 23, 0.98) 100%);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+                overflow: hidden;
+                transform-origin: center center;
+                border: 1px solid rgba(0, 209, 255, 0.15);
+            }
+            .slide {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.5s ease, transform 0.5s ease;
+                transform: scale(0.98) translateX(30px);
+                padding: 100px 100px 120px 100px;
+                box-sizing: border-box;
+            }
+            .slide.active {
+                opacity: 1;
+                visibility: visible;
+                transform: scale(1) translateX(0);
+                z-index: 10;
+            }
+            .mobile-bottom-nav {
+                display: none;
+            }
         }
 
-        .slide-stage {
-            width: 1920px;
-            height: 1080px;
-            position: relative;
-            background: linear-gradient(135deg, rgba(11, 25, 44, 0.95) 0%, rgba(6, 13, 23, 0.98) 100%);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            overflow: hidden;
-            transform-origin: center center;
-            border: 1px solid rgba(0, 209, 255, 0.15);
+        /* Mobile Responsive Layout (Celulares y Tabletas) */
+        @media (max-width: 1023px) {
+            body {
+                overflow-x: hidden;
+                overflow-y: auto;
+                background: #060d17;
+            }
+            .stage-container {
+                width: 100%;
+                min-height: 100vh;
+                padding-bottom: 80px;
+            }
+            .slide-stage {
+                width: 100% !important;
+                height: auto !important;
+                transform: none !important;
+                border: none !important;
+                box-shadow: none !important;
+                background: transparent !important;
+            }
+            .slide {
+                position: relative !important;
+                display: none;
+                padding: 90px 20px 40px 20px !important;
+                height: auto !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                transform: none !important;
+            }
+            .slide.active {
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            header#topHeader {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            footer#desktopFooter {
+                display: none !important;
+            }
+            .mobile-bottom-nav {
+                position: fixed;
+                bottom: 12px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(11, 25, 44, 0.95);
+                backdrop-filter: blur(16px);
+                border: 1px solid rgba(0, 209, 255, 0.3);
+                border-radius: 9999px;
+                padding: 8px 20px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                z-index: 100;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            }
         }
 
         /* Glassmorphism utility */
@@ -84,35 +169,9 @@
             box-shadow: 0 12px 24px -10px rgba(0, 209, 255, 0.2);
         }
 
-        /* Slide Transition Animations */
-        .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            transform: scale(0.98) translateX(30px);
-            padding: 80px 100px 120px 100px;
-            box-sizing: border-box;
-        }
-
-        .slide.active {
-            opacity: 1;
-            visibility: visible;
-            transform: scale(1) translateX(0);
-            z-index: 10;
-        }
-
         /* Glowing text effects */
         .glow-text {
             text-shadow: 0 0 15px rgba(0, 209, 255, 0.5);
-        }
-
-        .glow-gold {
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
         }
 
         /* Custom Scrollbars inside panels */
@@ -132,7 +191,7 @@
         }
     </style>
 </head>
-<body class="h-full select-none overflow-hidden bg-slate-950">
+<body class="h-full select-none bg-slate-950 text-slate-100">
 
     <!-- MAIN PRESENTATION STAGE CONTAINER -->
     <div class="stage-container" id="stageContainer">
@@ -142,179 +201,173 @@
             <div class="absolute -top-40 -left-40 w-96 h-96 bg-ipuc-cyan/10 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-ipuc-gold/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <!-- TOP HEADER BAR (Static across slides except cover) -->
-            <header id="topHeader" class="absolute top-0 left-0 w-full h-20 px-16 flex items-center justify-between border-b border-slate-800/80 z-20 bg-slate-950/40 backdrop-blur-md">
-                <div class="flex items-center space-x-4">
-                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-ipuc-cyan to-ipuc-blue flex items-center justify-center font-bold text-slate-950 shadow-lg shadow-ipuc-cyan/20 text-lg">
-                        <i class="fa-solid fa-book-bible"></i>
+            <!-- TOP HEADER BAR -->
+            <header id="topHeader" class="fixed lg:absolute top-0 left-0 w-full h-16 lg:h-20 px-6 lg:px-16 flex items-center justify-between border-b border-slate-800/80 z-40 bg-slate-950/80 backdrop-blur-md">
+                <div class="flex items-center space-x-3 lg:space-x-4">
+                    <div class="w-9 h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-ipuc-cyan to-ipuc-blue flex items-center justify-center font-bold text-slate-950 shadow-lg shadow-ipuc-cyan/20 text-base lg:text-lg">
+                        <i class="fa-solid fa-book-open"></i>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold tracking-wider text-white">IPUC <span class="text-ipuc-cyan font-normal text-base">| Comunicaciones Locales</span></h1>
+                        <h1 class="text-base lg:text-xl font-bold tracking-wider text-white">IPUC <span class="text-ipuc-cyan font-normal text-xs lg:text-base">| Comunicaciones</span></h1>
                     </div>
                 </div>
-                <div id="slideTitleHeader" class="text-lg font-semibold text-slate-300 tracking-wide uppercase bg-slate-900/60 px-6 py-1.5 rounded-full border border-slate-800">
+                <div id="slideTitleHeader" class="text-xs lg:text-base font-semibold text-slate-300 tracking-wide uppercase bg-slate-900/80 px-4 lg:px-6 py-1 lg:py-1.5 rounded-full border border-slate-800">
                     Portada
                 </div>
-                <div class="flex items-center space-x-6 text-sm text-slate-400">
+                <div class="hidden lg:flex items-center space-x-6 text-sm text-slate-400">
                     <span id="slideCounter" class="font-mono text-ipuc-cyan font-bold text-base">01 / 08</span>
                 </div>
             </header>
 
             <!-- SLIDE 1: PORTADA -->
             <div class="slide active flex flex-col justify-between items-center text-center relative overflow-hidden" data-title="Portada">
-                <div class="my-auto flex flex-col items-center max-w-5xl">
-                    <div class="inline-flex items-center space-x-3 px-6 py-2 rounded-full glass-panel border border-ipuc-cyan/30 text-ipuc-cyan mb-8 animate-pulse">
-                        <i class="fa-solid fa-satellite-dish"></i>
-                        <span class="text-sm font-semibold tracking-widest uppercase">Manual de Funciones y Taller Capacitador</span>
+                <div class="my-auto flex flex-col items-center max-w-5xl py-8">
+                    <div class="inline-flex items-center space-x-2 lg:space-x-3 px-4 lg:px-6 py-1.5 lg:py-2 rounded-full glass-panel border border-ipuc-cyan/30 text-ipuc-cyan mb-6 lg:mb-8 animate-pulse">
+                        <i class="fa-solid fa-satellite-dish text-xs lg:text-sm"></i>
+                        <span class="text-xs lg:text-sm font-semibold tracking-widest uppercase">Manual de Funciones y Taller Capacitador</span>
                     </div>
 
-                    <h1 class="text-6xl font-extrabold text-white tracking-tight leading-tight mb-6">
+                    <h1 class="text-3xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight mb-4 lg:mb-6">
                         Comité de <span class="bg-clip-text text-transparent bg-gradient-to-r from-ipuc-cyan via-blue-400 to-ipuc-gold glow-text">Comunicaciones Locales</span>
                     </h1>
 
-                    <p class="text-2xl text-slate-300 font-light max-w-3xl leading-relaxed mb-12">
+                    <p class="text-base lg:text-2xl text-slate-300 font-light max-w-3xl leading-relaxed mb-8 lg:mb-12">
                         Iglesia Pentecostal Unida de Colombia &bull; Estructura, Misión, Identidad e Impacto para la Propagación del Evangelio.
                     </p>
 
-                    <div class="flex items-center justify-center gap-6">
-                        <button onclick="nextSlide()" class="px-8 py-4 rounded-xl bg-gradient-to-r from-ipuc-cyan to-blue-600 text-slate-950 font-bold text-lg hover:brightness-110 transform hover:scale-105 transition-all shadow-lg shadow-ipuc-cyan/30 flex items-center space-x-3">
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 lg:gap-6 w-full sm:w-auto">
+                        <button onclick="nextSlide()" class="w-full sm:w-auto px-6 lg:px-8 py-3.5 lg:py-4 rounded-xl bg-gradient-to-r from-ipuc-cyan to-blue-600 text-slate-950 font-bold text-base lg:text-lg hover:brightness-110 transform hover:scale-105 transition-all shadow-lg shadow-ipuc-cyan/30 flex items-center justify-center space-x-3">
                             <span>Comenzar Presentación</span>
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
-                        <button onclick="goToSlide(7)" class="px-8 py-4 rounded-xl glass-panel text-white font-semibold text-lg hover:bg-slate-800/60 transition-all border border-slate-700 flex items-center space-x-3">
+                        <button onclick="goToSlide(7)" class="w-full sm:w-auto px-6 lg:px-8 py-3.5 lg:py-4 rounded-xl glass-panel text-white font-semibold text-base lg:text-lg hover:bg-slate-800/60 transition-all border border-slate-700 flex items-center justify-center space-x-3">
                             <i class="fa-solid fa-gamepad text-ipuc-gold"></i>
                             <span>Ir al Taller Práctico</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="w-full grid grid-cols-4 gap-6 pt-8 border-t border-slate-800/80 text-left">
-                    <div class="flex items-center space-x-4">
-                        <i class="fa-solid fa-user-gear text-2xl text-ipuc-cyan"></i>
+                <div class="w-full grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 pt-6 lg:pt-8 border-t border-slate-800/80 text-left">
+                    <div class="flex items-center space-x-3 lg:space-x-4">
+                        <i class="fa-solid fa-user-gear text-xl lg:text-2xl text-ipuc-cyan"></i>
                         <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Dirección</p>
-                            <p class="text-sm font-medium text-slate-200">Gestión General</p>
+                            <p class="text-[10px] lg:text-xs text-slate-400 uppercase font-semibold">Dirección</p>
+                            <p class="text-xs lg:text-sm font-medium text-slate-200">Gestión General</p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <i class="fa-solid fa-newspaper text-2xl text-ipuc-cyan"></i>
+                    <div class="flex items-center space-x-3 lg:space-x-4">
+                        <i class="fa-solid fa-newspaper text-xl lg:text-2xl text-ipuc-cyan"></i>
                         <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Medios Escritos</p>
-                            <p class="text-sm font-medium text-slate-200">Redacción y Publicación</p>
+                            <p class="text-[10px] lg:text-xs text-slate-400 uppercase font-semibold">Medios Escritos</p>
+                            <p class="text-xs lg:text-sm font-medium text-slate-200">Redacción y Editorial</p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <i class="fa-solid fa-video text-2xl text-ipuc-cyan"></i>
+                    <div class="flex items-center space-x-3 lg:space-x-4">
+                        <i class="fa-solid fa-video text-xl lg:text-2xl text-ipuc-cyan"></i>
                         <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Audiovisuales & TV</p>
-                            <p class="text-sm font-medium text-slate-200">Producción y Stream</p>
+                            <p class="text-[10px] lg:text-xs text-slate-400 uppercase font-semibold">Audiovisuales & TV</p>
+                            <p class="text-xs lg:text-sm font-medium text-slate-200">Producción y Stream</p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <i class="fa-solid fa-hashtag text-2xl text-ipuc-cyan"></i>
+                    <div class="flex items-center space-x-3 lg:space-x-4">
+                        <i class="fa-solid fa-hashtag text-xl lg:text-2xl text-ipuc-cyan"></i>
                         <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Medios Digitales</p>
-                            <p class="text-sm font-medium text-slate-200">Estrategia Redes Web</p>
+                            <p class="text-[10px] lg:text-xs text-slate-400 uppercase font-semibold">Medios Digitales</p>
+                            <p class="text-xs lg:text-sm font-medium text-slate-200">Estrategia Redes y Web</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SLIDE 2: NUESTRA IMAGEN - MISIÓN Y VISIÓN 2030 -->
+            <!-- SLIDE 2: MISIÓN Y VISIÓN -->
             <div class="slide flex flex-col justify-between" data-title="Misión y Visión IPUC">
-                <div class="mb-6">
-                    <h2 class="text-4xl font-bold text-white mb-2">Nuestra Imagen Corporativa</h2>
-                    <p class="text-slate-400 text-lg">Fundamento espiritual y proyección de la Iglesia Pentecostal Unida de Colombia.</p>
+                <div class="mb-4 lg:mb-6">
+                    <h2 class="text-2xl lg:text-4xl font-bold text-white mb-1 lg:mb-2">Nuestra Imagen Corporativa</h2>
+                    <p class="text-slate-400 text-xs lg:text-lg">Fundamento espiritual y proyección de la Iglesia Pentecostal Unida de Colombia.</p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-10 my-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 my-auto py-4">
                     <!-- MISIÓN -->
-                    <div class="glass-card p-10 rounded-2xl relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-ipuc-cyan/10 rounded-full blur-2xl group-hover:bg-ipuc-cyan/20 transition-all"></div>
-                        <div class="flex items-center space-x-4 mb-6">
-                            <div class="w-14 h-14 rounded-xl bg-ipuc-cyan/20 border border-ipuc-cyan/40 flex items-center justify-center text-ipuc-cyan text-2xl">
+                    <div class="glass-card p-6 lg:p-10 rounded-2xl relative overflow-hidden group">
+                        <div class="flex items-center space-x-4 mb-4 lg:mb-6">
+                            <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-ipuc-cyan/20 border border-ipuc-cyan/40 flex items-center justify-center text-ipuc-cyan text-xl lg:text-2xl">
                                 <i class="fa-solid fa-compass"></i>
                             </div>
                             <div>
-                                <h3 class="text-2xl font-bold text-white">Misión Institutional</h3>
-                                <p class="text-xs text-ipuc-cyan uppercase tracking-widest font-semibold">Propósito Fundamental</p>
+                                <h3 class="text-xl lg:text-2xl font-bold text-white">Misión Institutional</h3>
+                                <p class="text-[10px] lg:text-xs text-ipuc-cyan uppercase tracking-widest font-semibold">Propósito Fundamental</p>
                             </div>
                         </div>
-                        <p class="text-slate-300 text-lg leading-relaxed">
-                            Somos la Iglesia enfocada en el cumplimiento de la gran comisión: <span class="text-ipuc-cyan font-semibold">"Id por todo el mundo y predicad el evangelio a toda criatura"</span>, enseñando que Jesucristo es el único Dios verdadero, trabajando en la expansión y consolidación de la obra en Colombia y en el extranjero, formando integralmente a nuestros ministros y feligreses, a fin de presentar al Señor una Iglesia Santa, mediante el acompañamiento espiritual y la formación del Ser.
+                        <p class="text-slate-300 text-sm lg:text-lg leading-relaxed">
+                            Somos la Iglesia enfocada en el cumplimiento de la gran comisión: <span class="text-ipuc-cyan font-semibold">"Id por todo el mundo y predicad el evangelio a toda criatura"</span>, enseñando que Jesucristo es el único Dios verdadero, trabajando en la expansión y consolidación de la obra en Colombia y en el extranjero, formando integralmente a nuestros ministros y feligreses.
                         </p>
                     </div>
 
                     <!-- VISIÓN 2030 -->
-                    <div class="glass-card p-10 rounded-2xl relative overflow-hidden group border-ipuc-gold/30">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-ipuc-gold/10 rounded-full blur-2xl group-hover:bg-ipuc-gold/20 transition-all"></div>
-                        <div class="flex items-center space-x-4 mb-6">
-                            <div class="w-14 h-14 rounded-xl bg-ipuc-gold/20 border border-ipuc-gold/40 flex items-center justify-center text-ipuc-gold text-2xl">
+                    <div class="glass-card p-6 lg:p-10 rounded-2xl relative overflow-hidden group border-ipuc-gold/30">
+                        <div class="flex items-center space-x-4 mb-4 lg:mb-6">
+                            <div class="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-ipuc-gold/20 border border-ipuc-gold/40 flex items-center justify-center text-ipuc-gold text-xl lg:text-2xl">
                                 <i class="fa-solid fa-eye"></i>
                             </div>
                             <div>
-                                <h3 class="text-2xl font-bold text-white">Visión <span class="text-ipuc-gold">2030</span></h3>
-                                <p class="text-xs text-ipuc-gold uppercase tracking-widest font-semibold">Proyección Estratégica</p>
+                                <h3 class="text-xl lg:text-2xl font-bold text-white">Visión <span class="text-ipuc-gold">2030</span></h3>
+                                <p class="text-[10px] lg:text-xs text-ipuc-gold uppercase tracking-widest font-semibold">Proyección Estratégica</p>
                             </div>
                         </div>
-                        <p class="text-slate-300 text-lg leading-relaxed">
-                            Para el año <span class="text-ipuc-gold font-bold">2030</span> seremos una Iglesia cristiana reconocida tanto a nivel nacional como internacional, por su expansión y crecimiento continuo, predicando el evangelio de Jesucristo, conservando la unidad del Espíritu, de la fe y del cuerpo; así formando discípulos para que sean llenos del Espíritu Santo, enteramente preparados para toda buena obra; involucrando activamente en la transformación integral del ser, con una alta capacidad administrativa eclesial y operativa en los procesos evangelísticos, formativos, social, filantrópicos y organizacionales.
+                        <p class="text-slate-300 text-sm lg:text-lg leading-relaxed">
+                            Para el año <span class="text-ipuc-gold font-bold">2030</span> seremos una Iglesia cristiana reconocida tanto a nivel nacional como internacional, por su expansión y crecimiento continuo, predicando el evangelio de Jesucristo, conservando la unidad del Espíritu, de la fe y del cuerpo.
                         </p>
                     </div>
                 </div>
 
-                <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-sm text-slate-400">
+                <div class="p-3 lg:p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs lg:text-sm text-slate-400 gap-2">
                     <span class="flex items-center gap-2"><i class="fa-solid fa-circle-info text-ipuc-cyan"></i> Las comunicaciones locales deben alinearse 100% con la Misión y Visión institucional.</span>
                     <span class="text-slate-500">IPUC &bull; Comunicaciones</span>
                 </div>
             </div>
 
-            <!-- SLIDE 3: IDENTIDAD VS IMAGEN CORPORATIVA -->
+            <!-- SLIDE 3: IDENTIDAD VS IMAGEN -->
             <div class="slide flex flex-col justify-between" data-title="Identidad vs Imagen">
                 <div class="mb-4">
-                    <h2 class="text-4xl font-bold text-white mb-2">Identidad Corporativa vs. Imagen Corporativa</h2>
-                    <p class="text-slate-400 text-lg">Comprender la diferencia clave entre lo que somos y la percepción de nuestro entorno.</p>
+                    <h2 class="text-2xl lg:text-4xl font-bold text-white mb-1 lg:mb-2">Identidad vs. Imagen Corporativa</h2>
+                    <p class="text-slate-400 text-xs lg:text-lg">Comprender la diferencia clave entre lo que somos y la percepción de nuestro entorno.</p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-8 my-auto">
-                    <!-- IDENTIDAD CORPORATIVA -->
-                    <div class="glass-card p-8 rounded-2xl border-l-4 border-l-ipuc-cyan relative">
-                        <div class="flex items-center justify-between mb-6">
-                            <span class="text-xs uppercase font-bold tracking-widest text-ipuc-cyan bg-ipuc-cyan/10 px-3 py-1 rounded-full">Lo que Somos</span>
-                            <i class="fa-solid fa-id-card text-3xl text-ipuc-cyan"></i>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 my-auto py-4">
+                    <div class="glass-card p-6 lg:p-8 rounded-2xl border-l-4 border-l-ipuc-cyan">
+                        <div class="flex items-center justify-between mb-4 lg:mb-6">
+                            <span class="text-[10px] lg:text-xs uppercase font-bold tracking-widest text-ipuc-cyan bg-ipuc-cyan/10 px-3 py-1 rounded-full">Lo que Somos</span>
+                            <i class="fa-solid fa-id-card text-2xl lg:text-3xl text-ipuc-cyan"></i>
                         </div>
-                        <h3 class="text-3xl font-bold text-white mb-4">Identidad Corporativa</h3>
-                        <p class="text-slate-300 text-lg leading-relaxed mb-6">
+                        <h3 class="text-xl lg:text-3xl font-bold text-white mb-3 lg:mb-4">Identidad Corporativa</h3>
+                        <p class="text-slate-300 text-sm lg:text-lg leading-relaxed mb-4 lg:mb-6">
                             Es la manifestación directa de lo que la iglesia es: <span class="text-white font-semibold">su esencia, sus valores, sus doctrinas y lo que desea transmitir</span>.
                         </p>
-                        <div class="bg-slate-900/70 p-5 rounded-xl border border-slate-800">
-                            <p class="text-sm text-slate-300"><i class="fa-solid fa-check text-green-400 mr-2"></i> Es <strong class="text-white">creada, definida y controlada directamente</strong> por la organización a través de sus principios, manuales de marca y directrices eclesiales.</p>
+                        <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
+                            <p class="text-xs lg:text-sm text-slate-300"><i class="fa-solid fa-check text-green-400 mr-2"></i> Es <strong class="text-white">definida y controlada directamente</strong> por la organización a través de sus principios y manuales de marca.</p>
                         </div>
                     </div>
 
-                    <!-- IMAGEN CORPORATIVA -->
-                    <div class="glass-card p-8 rounded-2xl border-l-4 border-l-ipuc-gold relative">
-                        <div class="flex items-center justify-between mb-6">
-                            <span class="text-xs uppercase font-bold tracking-widest text-ipuc-gold bg-ipuc-gold/10 px-3 py-1 rounded-full">Lo que Perciben</span>
-                            <i class="fa-solid fa-brain text-3xl text-ipuc-gold"></i>
+                    <div class="glass-card p-6 lg:p-8 rounded-2xl border-l-4 border-l-ipuc-gold">
+                        <div class="flex items-center justify-between mb-4 lg:mb-6">
+                            <span class="text-[10px] lg:text-xs uppercase font-bold tracking-widest text-ipuc-gold bg-ipuc-gold/10 px-3 py-1 rounded-full">Lo que Perciben</span>
+                            <i class="fa-solid fa-brain text-2xl lg:text-3xl text-ipuc-gold"></i>
                         </div>
-                        <h3 class="text-3xl font-bold text-white mb-4">Imagen Corporativa</h3>
-                        <p class="text-slate-300 text-lg leading-relaxed mb-6">
-                            Es la <span class="text-white font-semibold">percepción, interpretación y recuerdo</span> que el público objetivo, los miembros y la sociedad construyen en su mente.
+                        <h3 class="text-xl lg:text-3xl font-bold text-white mb-3 lg:mb-4">Imagen Corporativa</h3>
+                        <p class="text-slate-300 text-sm lg:text-lg leading-relaxed mb-4 lg:mb-6">
+                            Es la <span class="text-white font-semibold">percepción, interpretación y recuerdo</span> que el público objetivo y la sociedad construyen en su mente.
                         </p>
-                        <div class="bg-slate-900/70 p-5 rounded-xl border border-slate-800">
-                            <p class="text-sm text-slate-300"><i class="fa-solid fa-triangle-exclamation text-ipuc-gold mr-2"></i> <strong class="text-white">No se puede imponer directamente</strong>; se construye gradualmente en la mente de las personas a base de experiencias, calidad y coherencia en el tiempo.</p>
+                        <div class="bg-slate-900/70 p-4 rounded-xl border border-slate-800">
+                            <p class="text-xs lg:text-sm text-slate-300"><i class="fa-solid fa-triangle-exclamation text-ipuc-gold mr-2"></i> <strong class="text-white">No se puede imponer directamente</strong>; se construye a base de experiencias, testimonio y coherencia en el tiempo.</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="glass-panel p-6 rounded-2xl border border-ipuc-cyan/30 flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 rounded-full bg-ipuc-cyan/20 flex items-center justify-center text-ipuc-cyan text-xl font-bold">!</div>
-                        <div>
-                            <h4 class="text-white font-bold text-lg">Reflexión Comunicacional</h4>
-                            <p class="text-slate-300 text-sm">Nuestra tarea en comunicaciones es lograr que la <strong class="text-ipuc-cyan">Imagen Corporativa</strong> (percepción) sea un reflejo fiel e intachable de nuestra <strong class="text-ipuc-gold">Identidad Corporativa</strong> (esencia espiritual y bíblica).</p>
-                        </div>
+                <div class="glass-panel p-4 lg:p-6 rounded-2xl border border-ipuc-cyan/30 flex items-center space-x-4">
+                    <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-ipuc-cyan/20 flex items-center justify-center text-ipuc-cyan text-lg lg:text-xl font-bold flex-shrink-0">!</div>
+                    <div>
+                        <h4 class="text-white font-bold text-xs lg:text-lg">Reflexión Comunicacional</h4>
+                        <p class="text-slate-300 text-xs lg:text-sm">Lograr que la <strong class="text-ipuc-cyan">Imagen Corporativa</strong> (percepción) sea un reflejo fiel e intachable de nuestra <strong class="text-ipuc-gold">Identidad Corporativa</strong> (esencia bíblica).</p>
                     </div>
                 </div>
             </div>
@@ -322,86 +375,84 @@
             <!-- SLIDE 4: PRINCIPIOS Y VALORES -->
             <div class="slide flex flex-col justify-between" data-title="Principios y Valores">
                 <div class="mb-4">
-                    <h2 class="text-4xl font-bold text-white mb-2">Principios y Valores Institucionales</h2>
-                    <p class="text-slate-400 text-lg">Pilares éticos y espirituales que guían todo contenido publicado en la IPUC.</p>
+                    <h2 class="text-2xl lg:text-4xl font-bold text-white mb-1 lg:mb-2">Principios y Valores Institucionales</h2>
+                    <p class="text-slate-400 text-xs lg:text-lg">Pilares éticos y espirituales que guían todo contenido publicado en la IPUC.</p>
                 </div>
 
-                <div class="grid grid-cols-12 gap-8 my-auto">
-                    <!-- PRINCIPIOS -->
-                    <div class="col-span-5 flex flex-col justify-between space-y-4">
-                        <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-ipuc-gold">
-                            <h3 class="text-2xl font-bold text-ipuc-gold mb-4 flex items-center">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 my-auto py-2">
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="glass-panel p-5 lg:p-6 rounded-2xl border-t-4 border-t-ipuc-gold">
+                            <h3 class="text-lg lg:text-2xl font-bold text-ipuc-gold mb-3 lg:mb-4 flex items-center">
                                 <i class="fa-solid fa-gem mr-3"></i> 4 Principios Fundamentales
                             </h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
-                                    <i class="fa-solid fa-heart text-red-400 text-2xl mb-2"></i>
-                                    <h4 class="font-bold text-white">Amor de Jesús</h4>
+                            <div class="grid grid-cols-2 gap-3 lg:gap-4">
+                                <div class="bg-slate-900/80 p-3 lg:p-4 rounded-xl border border-slate-800 text-center">
+                                    <i class="fa-solid fa-heart text-red-400 text-xl lg:text-2xl mb-1 lg:mb-2"></i>
+                                    <h4 class="font-bold text-white text-xs lg:text-base">Amor de Jesús</h4>
                                 </div>
-                                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
-                                    <i class="fa-solid fa-scale-balanced text-ipuc-cyan text-2xl mb-2"></i>
-                                    <h4 class="font-bold text-white">Veracidad</h4>
+                                <div class="bg-slate-900/80 p-3 lg:p-4 rounded-xl border border-slate-800 text-center">
+                                    <i class="fa-solid fa-scale-balanced text-ipuc-cyan text-xl lg:text-2xl mb-1 lg:mb-2"></i>
+                                    <h4 class="font-bold text-white text-xs lg:text-base">Veracidad</h4>
                                 </div>
-                                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
-                                    <i class="fa-solid fa-handshake-simple text-green-400 text-2xl mb-2"></i>
-                                    <h4 class="font-bold text-white">Fidelidad</h4>
+                                <div class="bg-slate-900/80 p-3 lg:p-4 rounded-xl border border-slate-800 text-center">
+                                    <i class="fa-solid fa-handshake-simple text-green-400 text-xl lg:text-2xl mb-1 lg:mb-2"></i>
+                                    <h4 class="font-bold text-white text-xs lg:text-base">Fidelidad</h4>
                                 </div>
-                                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center">
-                                    <i class="fa-solid fa-dove text-amber-300 text-2xl mb-2"></i>
-                                    <h4 class="font-bold text-white">Santidad</h4>
+                                <div class="bg-slate-900/80 p-3 lg:p-4 rounded-xl border border-slate-800 text-center">
+                                    <i class="fa-solid fa-dove text-amber-300 text-xl lg:text-2xl mb-1 lg:mb-2"></i>
+                                    <h4 class="font-bold text-white text-xs lg:text-base">Santidad</h4>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- VALORES RELACIONADOS -->
-                    <div class="col-span-7 glass-panel p-6 rounded-2xl border-t-4 border-t-ipuc-cyan">
-                        <h3 class="text-2xl font-bold text-ipuc-cyan mb-4 flex items-center">
-                            <i class="fa-solid fa-star mr-3"></i> Valores Corporativos Asociados
+                    <div class="lg:col-span-7 glass-panel p-5 lg:p-6 rounded-2xl border-t-4 border-t-ipuc-cyan">
+                        <h3 class="text-lg lg:text-2xl font-bold text-ipuc-cyan mb-3 lg:mb-4 flex items-center">
+                            <i class="fa-solid fa-star mr-3"></i> Valores Corporativos
                         </h3>
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex items-center space-x-3">
-                                <i class="fa-solid fa-shield-halved text-ipuc-cyan"></i>
-                                <span class="font-medium text-slate-200 text-sm">Fe</span>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex items-center space-x-2 lg:space-x-3">
+                                <i class="fa-solid fa-shield-halved text-ipuc-cyan text-xs lg:text-base"></i>
+                                <span class="font-medium text-slate-200 text-xs lg:text-sm">Fe</span>
                             </div>
-                            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex items-center space-x-3">
-                                <i class="fa-solid fa-hands-holding-child text-ipuc-cyan"></i>
-                                <span class="font-medium text-slate-200 text-sm">Servicio</span>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex items-center space-x-2 lg:space-x-3">
+                                <i class="fa-solid fa-hands-holding-child text-ipuc-cyan text-xs lg:text-base"></i>
+                                <span class="font-medium text-slate-200 text-xs lg:text-sm">Servicio</span>
                             </div>
-                            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex items-center space-x-3">
-                                <i class="fa-solid fa-user-check text-ipuc-cyan"></i>
-                                <span class="font-medium text-slate-200 text-sm">Responsabilidad</span>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex items-center space-x-2 lg:space-x-3">
+                                <i class="fa-solid fa-user-check text-ipuc-cyan text-xs lg:text-base"></i>
+                                <span class="font-medium text-slate-200 text-xs lg:text-sm">Responsabilidad</span>
                             </div>
-                            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex items-center space-x-3">
-                                <i class="fa-solid fa-award text-ipuc-cyan"></i>
-                                <span class="font-medium text-slate-200 text-sm">Calidad</span>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex items-center space-x-2 lg:space-x-3">
+                                <i class="fa-solid fa-award text-ipuc-cyan text-xs lg:text-base"></i>
+                                <span class="font-medium text-slate-200 text-xs lg:text-sm">Calidad</span>
                             </div>
-                            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex items-center space-x-3">
-                                <i class="fa-solid fa-chart-line text-ipuc-cyan"></i>
-                                <span class="font-medium text-slate-200 text-sm">Desarrollo</span>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex items-center space-x-2 lg:space-x-3">
+                                <i class="fa-solid fa-chart-line text-ipuc-cyan text-xs lg:text-base"></i>
+                                <span class="font-medium text-slate-200 text-xs lg:text-sm">Desarrollo</span>
                             </div>
-                            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex items-center space-x-3">
-                                <i class="fa-solid fa-ribbon text-ipuc-cyan"></i>
-                                <span class="font-medium text-slate-200 text-sm">Lealtad</span>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex items-center space-x-2 lg:space-x-3">
+                                <i class="fa-solid fa-ribbon text-ipuc-cyan text-xs lg:text-base"></i>
+                                <span class="font-medium text-slate-200 text-xs lg:text-sm">Lealtad</span>
                             </div>
-                            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex items-center space-x-3">
-                                <i class="fa-solid fa-hand-holding-heart text-ipuc-cyan"></i>
-                                <span class="font-medium text-slate-200 text-sm">Respeto</span>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex items-center space-x-2 lg:space-x-3">
+                                <i class="fa-solid fa-hand-holding-heart text-ipuc-cyan text-xs lg:text-base"></i>
+                                <span class="font-medium text-slate-200 text-xs lg:text-sm">Respeto</span>
                             </div>
-                            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex items-center space-x-3">
-                                <i class="fa-solid fa-arrows-rotate text-ipuc-cyan"></i>
-                                <span class="font-medium text-slate-200 text-sm">Mejoramiento Continuo</span>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex items-center space-x-2 lg:space-x-3">
+                                <i class="fa-solid fa-arrows-rotate text-ipuc-cyan text-xs lg:text-base"></i>
+                                <span class="font-medium text-slate-200 text-xs lg:text-sm">Mejoramiento</span>
                             </div>
-                            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 flex items-center space-x-3">
-                                <i class="fa-solid fa-music text-ipuc-cyan"></i>
-                                <span class="font-medium text-slate-200 text-sm">Armonía</span>
+                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 flex items-center space-x-2 lg:space-x-3">
+                                <i class="fa-solid fa-music text-ipuc-cyan text-xs lg:text-base"></i>
+                                <span class="font-medium text-slate-200 text-xs lg:text-sm">Armonía</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-center text-slate-300 text-sm">
-                    "Cada imagen, escrito, transmisión o mensaje emitido por el Comité Local debe proyectar la <strong class="text-ipuc-gold">Santidad</strong> y la <strong class="text-ipuc-cyan">Veracidad</strong> de la palabra de Dios."
+                <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center text-slate-300 text-xs lg:text-sm">
+                    "Cada contenido emitido por el Comité Local debe proyectar la <strong class="text-ipuc-gold">Santidad</strong> y la <strong class="text-ipuc-cyan">Veracidad</strong> de la palabra de Dios."
                 </div>
             </div>
 
@@ -409,126 +460,96 @@
             <div class="slide flex flex-col justify-between" data-title="Director General">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <span class="text-xs font-bold text-ipuc-cyan uppercase tracking-widest">Estructura Local &bull; Nombrada por el Pastor</span>
-                        <h2 class="text-4xl font-bold text-white">Director General de Comunicaciones</h2>
+                        <span class="text-[10px] lg:text-xs font-bold text-ipuc-cyan uppercase tracking-widest">Estructura Local &bull; Nombrada por el Pastor</span>
+                        <h2 class="text-2xl lg:text-4xl font-bold text-white">Director General de Comunicaciones</h2>
                     </div>
-                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-ipuc-cyan to-blue-700 flex items-center justify-center text-slate-950 text-3xl font-extrabold shadow-lg shadow-ipuc-cyan/20">
+                    <div class="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-ipuc-cyan to-blue-700 flex items-center justify-center text-slate-950 text-xl lg:text-3xl font-extrabold shadow-lg shadow-ipuc-cyan/20 flex-shrink-0">
                         <i class="fa-solid fa-user-tie"></i>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-12 gap-8 my-auto">
-                    <!-- OBJETIVOS -->
-                    <div class="col-span-5 space-y-4">
-                        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-ipuc-gold">
-                            <h3 class="text-lg font-bold text-ipuc-gold uppercase tracking-wider mb-3"><i class="fa-solid fa-bullseye mr-2"></i>Objetivo General</h3>
-                            <p class="text-slate-200 text-base leading-relaxed">
-                                Dirigir y gestionar todos los procesos relacionados con el departamento de comunicaciones de la iglesia Local, promoviendo el uso eficaz e integral de las comunicaciones.
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 my-auto py-2">
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="glass-card p-5 lg:p-6 rounded-2xl border-l-4 border-l-ipuc-gold">
+                            <h3 class="text-base lg:text-lg font-bold text-ipuc-gold uppercase tracking-wider mb-2 lg:mb-3"><i class="fa-solid fa-bullseye mr-2"></i>Objetivo General</h3>
+                            <p class="text-slate-200 text-sm lg:text-base leading-relaxed">
+                                Dirigir y gestionar todos los procesos del departamento de comunicaciones de la iglesia Local, promoviendo el uso eficaz e integral de los medios.
                             </p>
-                        </div>
-                        <div class="glass-panel p-6 rounded-2xl border border-slate-800">
-                            <h4 class="text-white font-semibold mb-2 flex items-center"><i class="fa-solid fa-hand-holding-hand text-ipuc-cyan mr-2"></i>Sinergia Comunicativa</h4>
-                            <p class="text-slate-400 text-sm">Propender por la articulación armónica entre todos los comités eclesiales (Jóvenes, Damas, Escuela Dominical, Misiones, etc.).</p>
                         </div>
                     </div>
 
-                    <!-- FUNCIONES CLAVE -->
-                    <div class="col-span-7 glass-panel p-6 rounded-2xl overflow-hidden flex flex-col justify-between">
-                        <h3 class="text-xl font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-list-check text-ipuc-cyan mr-2"></i>Funciones Principales</h3>
-                        <div class="space-y-3 custom-scroll overflow-y-auto max-h-[360px] pr-2">
+                    <div class="lg:col-span-7 glass-panel p-5 lg:p-6 rounded-2xl flex flex-col justify-between">
+                        <h3 class="text-base lg:text-xl font-bold text-white mb-3 lg:mb-4 flex items-center"><i class="fa-solid fa-list-check text-ipuc-cyan mr-2"></i>Funciones Principales</h3>
+                        <div class="space-y-2.5 custom-scroll overflow-y-auto max-h-[300px] lg:max-h-[360px] pr-2">
                             <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Coordinar Recursos:</strong> Administrar el talento humano, recursos técnicos y económicos del departamento.</p>
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1 text-xs lg:text-sm"></i>
+                                <p class="text-slate-300 text-xs lg:text-sm"><strong class="text-white">Coordinar Recursos:</strong> Administrar el talento humano, recursos técnicos y económicos a disposición.</p>
                             </div>
                             <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Asesoría Eclesial:</strong> Asesorar a los comités locales en la propagación del Evangelio mediante plataformas digitales y medios.</p>
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1 text-xs lg:text-sm"></i>
+                                <p class="text-slate-300 text-xs lg:text-sm"><strong class="text-white">Asesoría Eclesial:</strong> Asesorar a los comités locales en la propagación del Evangelio mediante plataformas digitales.</p>
                             </div>
                             <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Salvaguardar Principios:</strong> Difundir información oficial salvaguardando la identidad, principios y valores institucionales.</p>
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1 text-xs lg:text-sm"></i>
+                                <p class="text-slate-300 text-xs lg:text-sm"><strong class="text-white">Salvaguardar Principios:</strong> Difundir información oficial salvaguardando la identidad, principios y valores institucionales.</p>
                             </div>
                             <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Imagen Corporativa:</strong> Velar rigurosamente por el buen uso de la imagen corporativa de la IPUC.</p>
-                            </div>
-                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Proyectos y Estrategia:</strong> Implementar planes y proyectos que fortalezcan el alcance comunicativo.</p>
-                            </div>
-                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-check text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Administración de Canales:</strong> Gestionar y supervisar redes sociales, canales y plataformas oficiales de la congregación.</p>
+                                <i class="fa-solid fa-check text-ipuc-cyan mt-1 text-xs lg:text-sm"></i>
+                                <p class="text-slate-300 text-xs lg:text-sm"><strong class="text-white">Imagen Corporativa:</strong> Velar por el buen uso de la imagen corporativa de la IPUC.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 flex justify-between">
-                    <span>* Nombrado según la necesidad de la congregación local por el pastor.</span>
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-[10px] lg:text-xs text-slate-400 flex justify-between">
+                    <span>* Nombrado según la necesidad congregacional por el pastor.</span>
                     <span>IPUC Comunicaciones</span>
                 </div>
             </div>
 
-            <!-- SLIDE 6: ÁREAS ESPECIALIZADAS 1 (Escritos & Audiovisuales) -->
-            <div class="slide flex flex-col justify-between" data-title="Medios Escritos y Audiovisuales">
+            <!-- SLIDE 6: MEDIOS ESCRITOS Y AUDIOVISUALES -->
+            <div class="slide flex flex-col justify-between" data-title="Escritos y Audiovisuales">
                 <div class="mb-4">
-                    <span class="text-xs font-bold text-ipuc-cyan uppercase tracking-widest">Estructura Operativa</span>
-                    <h2 class="text-4xl font-bold text-white">Medios Escritos & Audiovisuales/TV</h2>
+                    <span class="text-[10px] lg:text-xs font-bold text-ipuc-cyan uppercase tracking-widest">Estructura Operativa</span>
+                    <h2 class="text-2xl lg:text-4xl font-bold text-white">Medios Escritos & Audiovisuales/TV</h2>
                 </div>
 
-                <div class="grid grid-cols-2 gap-8 my-auto">
-                    <!-- MEDIOS ESCRITOS -->
-                    <div class="glass-card p-6 rounded-2xl flex flex-col justify-between border-t-4 border-t-ipuc-cyan">
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-2xl font-bold text-white flex items-center">
-                                    <i class="fa-solid fa-pen-nib text-ipuc-cyan mr-3"></i> Medios Escritos
-                                </h3>
-                                <span class="text-xs bg-ipuc-cyan/20 text-ipuc-cyan font-semibold px-3 py-1 rounded-full">Editorial & Ortografía</span>
-                            </div>
-
-                            <p class="text-slate-300 text-sm mb-4 leading-relaxed bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                                <strong class="text-ipuc-cyan">Objetivo:</strong> Promover de manera efectiva la creación y difusión de material escrito formativo, evangelístico, informativo y documental con veracidad y calidad.
-                            </p>
-
-                            <ul class="space-y-2 text-xs text-slate-300 custom-scroll overflow-y-auto max-h-[220px]">
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Asesorar y brindar acompañamiento en materia escrita y ortográfica.</span></li>
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Proveer espacios de formación en producción y conservación escrita.</span></li>
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Promover la creación de contenidos bajo principios y doctrinas IPUC.</span></li>
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span><strong class="text-white">Verificar Derechos de Autor:</strong> Garantizar la salvaguarda de propiedad intelectual.</span></li>
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Revisión rigurosa previa publicación (procedencia, impacto y oportunidad).</span></li>
-                            </ul>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 my-auto py-2">
+                    <div class="glass-card p-5 lg:p-6 rounded-2xl border-t-4 border-t-ipuc-cyan">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg lg:text-2xl font-bold text-white flex items-center">
+                                <i class="fa-solid fa-pen-nib text-ipuc-cyan mr-3"></i> Medios Escritos
+                            </h3>
                         </div>
+                        <p class="text-slate-300 text-xs lg:text-sm mb-3 bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+                            <strong class="text-ipuc-cyan">Objetivo:</strong> Crear y difundir material escrito formativo, evangelístico, informativo y documental con veracidad y calidad.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-300">
+                            <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Asesorar en materia escrita, ortográfica y gramatical.</span></li>
+                            <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span><strong class="text-white">Verificar Derechos de Autor:</strong> Salvaguardar la propiedad intelectual de todo contenido.</span></li>
+                            <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-cyan mt-0.5"></i> <span>Revisión rigurosa de textos antes de su publicación.</span></li>
+                        </ul>
                     </div>
 
-                    <!-- MEDIOS AUDIOVISUALES Y TV -->
-                    <div class="glass-card p-6 rounded-2xl flex flex-col justify-between border-t-4 border-t-ipuc-gold">
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-2xl font-bold text-white flex items-center">
-                                    <i class="fa-solid fa-video text-ipuc-gold mr-3"></i> Audiovisuales y TV
-                                </h3>
-                                <span class="text-xs bg-ipuc-gold/20 text-ipuc-gold font-semibold px-3 py-1 rounded-full">Producción & Live</span>
-                            </div>
-
-                            <p class="text-slate-300 text-sm mb-4 leading-relaxed bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                                <strong class="text-ipuc-gold">Objetivo:</strong> Brindar asesoría en producción, edición y realización de videos, fotografías y transmisiones orientadas hacia la máxima calidad y pulcritud.
-                            </p>
-
-                            <ul class="space-y-2 text-xs text-slate-300 custom-scroll overflow-y-auto max-h-[220px]">
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Elaborar e implementar la <strong class="text-white">parrilla de programación</strong> para difusión.</span></li>
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Realizar la producción audiovisual de eventos (transmisión en vivo y grabación).</span></li>
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Velar por la calidad técnica: <strong class="text-white">sonido, iluminación, escenografía y fotografía</strong>.</span></li>
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Proveer capacitaciones y talleres en técnicas audiovisuales.</span></li>
-                                <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Velar por el uso correcto de la imagen corporativa en pantallas y videos.</span></li>
-                            </ul>
+                    <div class="glass-card p-5 lg:p-6 rounded-2xl border-t-4 border-t-ipuc-gold">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg lg:text-2xl font-bold text-white flex items-center">
+                                <i class="fa-solid fa-video text-ipuc-gold mr-3"></i> Audiovisuales y TV
+                            </h3>
                         </div>
+                        <p class="text-slate-300 text-xs lg:text-sm mb-3 bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+                            <strong class="text-ipuc-gold">Objetivo:</strong> Asesorar la producción, edición y realización de videos, fotografías y transmisiones en vivo con calidad.
+                        </p>
+                        <ul class="space-y-2 text-xs text-slate-300">
+                            <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Implementar la <strong class="text-white">parrilla de programación</strong> de difusión.</span></li>
+                            <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Garantizar la calidad en <strong class="text-white">sonido, iluminación y escenografía</strong>.</span></li>
+                            <li class="flex items-start space-x-2"><i class="fa-solid fa-angle-right text-ipuc-gold mt-0.5"></i> <span>Realizar la producción audiovisual de eventos locales.</span></li>
+                        </ul>
                     </div>
                 </div>
 
-                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 text-center">
-                    La sinergia entre el texto correcto y la producción visual impecable asegura un mensaje claro e impactante.
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-[10px] lg:text-xs text-slate-400 text-center">
+                    La sinergia entre la redacción correcta y la producción visual impecable asegura un mensaje de alto impacto.
                 </div>
             </div>
 
@@ -536,110 +557,95 @@
             <div class="slide flex flex-col justify-between" data-title="Medios Digitales">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <span class="text-xs font-bold text-ipuc-cyan uppercase tracking-widest">Estructura Operativa</span>
-                        <h2 class="text-4xl font-bold text-white">Medios Digitales y Redes Sociales</h2>
+                        <span class="text-[10px] lg:text-xs font-bold text-ipuc-cyan uppercase tracking-widest">Estructura Operativa</span>
+                        <h2 class="text-2xl lg:text-4xl font-bold text-white">Medios Digitales y Redes Sociales</h2>
                     </div>
-                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-ipuc-cyan flex items-center justify-center text-slate-950 text-3xl font-extrabold shadow-lg shadow-ipuc-cyan/20">
+                    <div class="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-ipuc-cyan flex items-center justify-center text-slate-950 text-xl lg:text-3xl font-extrabold shadow-lg shadow-ipuc-cyan/20 flex-shrink-0">
                         <i class="fa-solid fa-hashtag"></i>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-12 gap-8 my-auto">
-                    <!-- OBJETIVO -->
-                    <div class="col-span-5 space-y-4">
-                        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-ipuc-cyan">
-                            <h3 class="text-lg font-bold text-ipuc-cyan uppercase tracking-wider mb-3"><i class="fa-solid fa-globe mr-2"></i>Objetivo Digital</h3>
-                            <p class="text-slate-200 text-base leading-relaxed">
-                                Administrar y maximizar la presencia en plataformas digitales, páginas web y redes sociales de la congregación con un manejo serio, seguro e innovador de la información.
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 my-auto py-2">
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="glass-card p-5 lg:p-6 rounded-2xl border-l-4 border-l-ipuc-cyan">
+                            <h3 class="text-base lg:text-lg font-bold text-ipuc-cyan uppercase tracking-wider mb-2"><i class="fa-solid fa-globe mr-2"></i>Objetivo Digital</h3>
+                            <p class="text-slate-200 text-xs lg:text-base leading-relaxed">
+                                Administrar y maximizar la presencia en plataformas digitales y redes sociales con un manejo serio, seguro e innovador de la información.
                             </p>
-                        </div>
-
-                        <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex items-center space-x-4">
-                            <i class="fa-solid fa-shield-halved text-3xl text-green-400"></i>
-                            <div>
-                                <h4 class="text-white font-bold text-sm">Ciberseguridad Eclesial</h4>
-                                <p class="text-slate-400 text-xs">Proteger contraseñas y accesos a cuentas oficiales para evitar hackeos o usurpación de identidad.</p>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- FUNCIONES CLAVE -->
-                    <div class="col-span-7 glass-panel p-6 rounded-2xl overflow-hidden flex flex-col justify-between">
-                        <h3 class="text-xl font-bold text-white mb-4 flex items-center"><i class="fa-solid fa-list-check text-ipuc-cyan mr-2"></i>Funciones Específicas</h3>
-                        <div class="space-y-3 custom-scroll overflow-y-auto max-h-[340px] pr-2">
+                    <div class="lg:col-span-7 glass-panel p-5 lg:p-6 rounded-2xl flex flex-col justify-between">
+                        <h3 class="text-base lg:text-xl font-bold text-white mb-3 lg:mb-4 flex items-center"><i class="fa-solid fa-list-check text-ipuc-cyan mr-2"></i>Funciones Específicas</h3>
+                        <div class="space-y-2.5 custom-scroll overflow-y-auto max-h-[300px] pr-2">
                             <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-laptop-code text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Mantenimiento Web:</strong> Mantenimiento y actualización constante de las páginas oficiales de la iglesia.</p>
+                                <i class="fa-solid fa-laptop-code text-ipuc-cyan mt-1 text-xs lg:text-sm"></i>
+                                <p class="text-slate-300 text-xs lg:text-sm"><strong class="text-white">Mantenimiento Web:</strong> Actualizar constantemente las páginas oficiales de la iglesia.</p>
                             </div>
                             <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-key text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Seguridad Digital:</strong> Administrar la seguridad y accesos a redes sociales y plataformas.</p>
+                                <i class="fa-solid fa-key text-ipuc-cyan mt-1 text-xs lg:text-sm"></i>
+                                <p class="text-slate-300 text-xs lg:text-sm"><strong class="text-white">Seguridad Digital:</strong> Administrar la seguridad y accesos a redes sociales.</p>
                             </div>
                             <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-bullhorn text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Marketing Digital:</strong> Planear campañas de difusión estratégica para eventos congregacionales.</p>
+                                <i class="fa-solid fa-bullhorn text-ipuc-cyan mt-1 text-xs lg:text-sm"></i>
+                                <p class="text-slate-300 text-xs lg:text-sm"><strong class="text-white">Marketing Digital:</strong> Planear campañas de difusión estratégica para eventos.</p>
                             </div>
                             <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-chart-line text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Métricas y Analítica:</strong> Realizar estadísticas continuas sobre alcance e interacción en redes.</p>
-                            </div>
-                            <div class="flex items-start space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800">
-                                <i class="fa-solid fa-comments text-ipuc-cyan mt-1"></i>
-                                <p class="text-slate-300 text-sm"><strong class="text-white">Atención al Usuario:</strong> Responder adecuadamente mensajes y chats recibidos en canales oficiales.</p>
+                                <i class="fa-solid fa-comments text-ipuc-cyan mt-1 text-xs lg:text-sm"></i>
+                                <p class="text-slate-300 text-xs lg:text-sm"><strong class="text-white">Atención Oficial:</strong> Responder adecuadamente mensajes y chats recibidos.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 text-center">
-                    "Las redes sociales son el frente misionero digital de mayor alcance en la actualidad."
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-[10px] lg:text-xs text-slate-400 text-center">
+                    "Las redes sociales representan el campo de evangelización digital de mayor alcance."
                 </div>
             </div>
 
-            <!-- SLIDE 8: TALLER PRÁCTICO INTERACTIVO -->
+            <!-- SLIDE 8: TALLER PRÁCTICO -->
             <div class="slide flex flex-col justify-between" data-title="Taller Práctico">
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
                     <div>
-                        <span class="text-xs font-bold text-ipuc-gold uppercase tracking-widest"><i class="fa-solid fa-dumbbell mr-1"></i> Dinámica de Aprendizaje</span>
-                        <h2 class="text-3xl font-bold text-white">Taller Práctico: Evaluación de Escenarios Realistas</h2>
+                        <span class="text-[10px] lg:text-xs font-bold text-ipuc-gold uppercase tracking-widest"><i class="fa-solid fa-dumbbell mr-1"></i> Capacitación Participativa</span>
+                        <h2 class="text-2xl lg:text-3xl font-bold text-white">Taller Práctico Interactivos</h2>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-sm">
-                            Score: <span id="workshopScore" class="font-bold text-ipuc-gold text-lg">0</span> / 100
+                    <div class="flex items-center space-x-3 self-end sm:self-auto">
+                        <div class="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 text-xs lg:text-sm">
+                            Score: <span id="workshopScore" class="font-bold text-ipuc-gold text-base lg:text-lg">0</span> / 100
                         </div>
-                        <button onclick="resetWorkshop()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg transition-all">
+                        <button onclick="resetWorkshop()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-all">
                             <i class="fa-solid fa-arrows-rotate mr-1"></i> Reiniciar
                         </button>
                     </div>
                 </div>
 
                 <!-- TALLER CONTAINER CON TABS -->
-                <div class="my-auto glass-panel p-6 rounded-2xl border border-slate-800 flex-1 flex flex-col justify-between max-h-[720px] overflow-hidden">
+                <div class="my-auto glass-panel p-4 lg:p-6 rounded-2xl border border-slate-800 flex-1 flex flex-col justify-between overflow-hidden">
                     <!-- TABS HEADER -->
                     <div class="flex border-b border-slate-800 mb-4">
-                        <button id="tabBtn1" onclick="switchWorkshopTab(1)" class="px-6 py-3 font-semibold text-sm border-b-2 border-ipuc-cyan text-ipuc-cyan flex items-center space-x-2">
+                        <button id="tabBtn1" onclick="switchWorkshopTab(1)" class="px-4 lg:px-6 py-2.5 font-semibold text-xs lg:text-sm border-b-2 border-ipuc-cyan text-ipuc-cyan flex items-center space-x-2">
                             <i class="fa-solid fa-sitemap"></i>
                             <span>Ejercicio 1: Asignación de Funciones</span>
                         </button>
-                        <button id="tabBtn2" onclick="switchWorkshopTab(2)" class="px-6 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+                        <button id="tabBtn2" onclick="switchWorkshopTab(2)" class="px-4 lg:px-6 py-2.5 font-semibold text-xs lg:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
                             <i class="fa-solid fa-shield-cat"></i>
-                            <span>Ejercicio 2: Auditoría de Publicación (Control de Calidad)</span>
+                            <span>Ejercicio 2: Control de Calidad</span>
                         </button>
                     </div>
 
                     <!-- TAB CONTENT 1: ASIGNACIÓN DE ROLES -->
                     <div id="workshopTab1" class="flex-1 flex flex-col justify-between">
-                        <p class="text-sm text-slate-300 mb-4">Selecciona el área encargada de resolver cada una de las situaciones planteadas:</p>
+                        <p class="text-xs lg:text-sm text-slate-300 mb-3">Selecciona el área encargada de resolver cada una de las situaciones planteadas:</p>
                         
-                        <div class="space-y-3 custom-scroll overflow-y-auto max-h-[420px] pr-2">
-                            <!-- Casos -->
-                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-                                <div class="max-w-2xl">
-                                    <span class="text-xs text-ipuc-cyan font-semibold">Caso 1</span>
-                                    <p class="text-sm text-slate-200">"El pastor solicita crear una campaña publicitaria pagada en Instagram y monitorear los comentarios recibidos."</p>
+                        <div class="space-y-3 custom-scroll overflow-y-auto max-h-[380px] pr-2">
+                            <div class="bg-slate-900/80 p-3 lg:p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <span class="text-[10px] text-ipuc-cyan font-semibold">Caso 1</span>
+                                    <p class="text-xs lg:text-sm text-slate-200">"El pastor solicita crear una campaña publicitaria pagada en Instagram y monitorear mensajes."</p>
                                 </div>
-                                <select id="q1" onchange="checkAnswer('q1', 'digitales')" class="bg-slate-950 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 focus:border-ipuc-cyan outline-none">
-                                    <option value="">-- Seleccionar Área --</option>
+                                <select id="q1" onchange="checkAnswer('q1', 'digitales')" class="bg-slate-950 border border-slate-700 rounded-lg text-xs p-2 text-slate-200 focus:border-ipuc-cyan outline-none w-full sm:w-auto">
+                                    <option value="">-- Área --</option>
                                     <option value="director">Director General</option>
                                     <option value="escritos">Medios Escritos</option>
                                     <option value="audiovisuales">Medios Audiovisuales</option>
@@ -647,13 +653,13 @@
                                 </select>
                             </div>
 
-                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-                                <div class="max-w-2xl">
-                                    <span class="text-xs text-ipuc-cyan font-semibold">Caso 2</span>
-                                    <p class="text-sm text-slate-200">"Se debe redactar el folleto evangelístico oficial y verificar que los textos bíblicos respeten la ortografía y derechos de autor."</p>
+                            <div class="bg-slate-900/80 p-3 lg:p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <span class="text-[10px] text-ipuc-cyan font-semibold">Caso 2</span>
+                                    <p class="text-xs lg:text-sm text-slate-200">"Redactar el boletín eclesial y verificar la ortografía y derechos de autor del texto."</p>
                                 </div>
-                                <select id="q2" onchange="checkAnswer('q2', 'escritos')" class="bg-slate-950 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 focus:border-ipuc-cyan outline-none">
-                                    <option value="">-- Seleccionar Área --</option>
+                                <select id="q2" onchange="checkAnswer('q2', 'escritos')" class="bg-slate-950 border border-slate-700 rounded-lg text-xs p-2 text-slate-200 focus:border-ipuc-cyan outline-none w-full sm:w-auto">
+                                    <option value="">-- Área --</option>
                                     <option value="director">Director General</option>
                                     <option value="escritos">Medios Escritos</option>
                                     <option value="audiovisuales">Medios Audiovisuales</option>
@@ -661,27 +667,13 @@
                                 </select>
                             </div>
 
-                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-                                <div class="max-w-2xl">
-                                    <span class="text-xs text-ipuc-cyan font-semibold">Caso 3</span>
-                                    <p class="text-sm text-slate-200">"Calibrar la iluminación, escenografía y sonido para la transmisión en vivo de la Confraternidad."</p>
+                            <div class="bg-slate-900/80 p-3 lg:p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <span class="text-[10px] text-ipuc-cyan font-semibold">Caso 3</span>
+                                    <p class="text-xs lg:text-sm text-slate-200">"Ajustar sonido, iluminación y cámaras para la transmisión en vivo de un evento."</p>
                                 </div>
-                                <select id="q3" onchange="checkAnswer('q3', 'audiovisuales')" class="bg-slate-950 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 focus:border-ipuc-cyan outline-none">
-                                    <option value="">-- Seleccionar Área --</option>
-                                    <option value="director">Director General</option>
-                                    <option value="escritos">Medios Escritos</option>
-                                    <option value="audiovisuales">Medios Audiovisuales</option>
-                                    <option value="digitales">Medios Digitales</option>
-                                </select>
-                            </div>
-
-                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
-                                <div class="max-w-2xl">
-                                    <span class="text-xs text-ipuc-cyan font-semibold">Caso 4</span>
-                                    <p class="text-sm text-slate-200">"Gestionar el presupuesto anual del departamento de comunicaciones y resolver diferencias entre los comités."</p>
-                                </div>
-                                <select id="q4" onchange="checkAnswer('q4', 'director')" class="bg-slate-950 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 focus:border-ipuc-cyan outline-none">
-                                    <option value="">-- Seleccionar Área --</option>
+                                <select id="q3" onchange="checkAnswer('q3', 'audiovisuales')" class="bg-slate-950 border border-slate-700 rounded-lg text-xs p-2 text-slate-200 focus:border-ipuc-cyan outline-none w-full sm:w-auto">
+                                    <option value="">-- Área --</option>
                                     <option value="director">Director General</option>
                                     <option value="escritos">Medios Escritos</option>
                                     <option value="audiovisuales">Medios Audiovisuales</option>
@@ -693,66 +685,55 @@
 
                     <!-- TAB CONTENT 2: SIMULADOR DE AUDITORÍA -->
                     <div id="workshopTab2" class="hidden flex-1 flex flex-col justify-between">
-                        <p class="text-sm text-slate-300 mb-2">Evalúa el siguiente boceto de publicación para redes e identifica cuáles de los siguientes errores deben corregirse antes de publicar:</p>
+                        <p class="text-xs lg:text-sm text-slate-300 mb-2">Evalúa el siguiente borrador de publicación e identifica las inconsistencias a corregir:</p>
                         
-                        <div class="grid grid-cols-12 gap-6 my-auto">
-                            <!-- PUBLICACIÓN SIMULADA CON ERRORES -->
-                            <div class="col-span-5 bg-slate-900 p-5 rounded-xl border border-red-500/40 relative">
-                                <div class="text-xs text-red-400 font-bold uppercase mb-2 flex items-center">
-                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Borrador Aprobación Pendiente
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 my-auto">
+                            <div class="lg:col-span-5 bg-slate-900 p-4 rounded-xl border border-red-500/40">
+                                <div class="text-[10px] text-red-400 font-bold uppercase mb-2 flex items-center">
+                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Publicación Pendiente
                                 </div>
-                                <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
-                                    <div class="flex items-center space-x-3 mb-3">
-                                        <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold">IPUC</div>
-                                        <div>
-                                            <p class="text-xs font-bold text-white">Iglesia Local @ipuc_oficial</p>
-                                            <p class="text-[10px] text-slate-500">Hace 5 min</p>
-                                        </div>
-                                    </div>
-                                    <p class="text-xs text-slate-300 mb-3">
-                                        "Gran Culto Especial este Domingo. Ven con tu familia a resivir la bendición. Música comercial descargada de YouTube de fondo."
+                                <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                    <p class="text-xs text-slate-300 mb-2">
+                                        "Gran Culto este Domingo. Ven con tu familia a resivir la bendición. Audio comercial de YouTube de fondo."
                                     </p>
-                                    <div class="w-full h-32 bg-slate-800 rounded flex items-center justify-center text-slate-500 text-xs text-center p-2">
-                                        [Imagen con logo modificado y estirado sin colores corporativos oficial IPUC]
+                                    <div class="w-full h-20 bg-slate-800 rounded flex items-center justify-center text-slate-500 text-[10px] text-center p-2">
+                                        [Imagen con logo distorsionado sin colores oficiales IPUC]
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- CHECKLIST DE AUDITORÍA -->
-                            <div class="col-span-7 space-y-2">
-                                <p class="text-xs font-bold text-slate-300 uppercase">Selecciona los problemas encontrados:</p>
-                                
-                                <label class="flex items-center space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800 hover:bg-slate-800/50 cursor-pointer">
+                            <div class="lg:col-span-7 space-y-2">
+                                <label class="flex items-center space-x-3 p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 cursor-pointer">
                                     <input type="checkbox" id="chk1" onchange="evaluateChecklist()" class="w-4 h-4 text-ipuc-cyan rounded">
                                     <span class="text-xs text-slate-200">Error ortográfico grave ("resivir" en lugar de "recibir").</span>
                                 </label>
 
-                                <label class="flex items-center space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800 hover:bg-slate-800/50 cursor-pointer">
+                                <label class="flex items-center space-x-3 p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 cursor-pointer">
                                     <input type="checkbox" id="chk2" onchange="evaluateChecklist()" class="w-4 h-4 text-ipuc-cyan rounded">
-                                    <span class="text-xs text-slate-200">Violación de Derechos de Autor (Uso no autorizado de audio comercial de YouTube).</span>
+                                    <span class="text-xs text-slate-200">Derechos de Autor (Audio no autorizado de YouTube).</span>
                                 </label>
 
-                                <label class="flex items-center space-x-3 p-3 rounded-lg bg-slate-900/60 border border-slate-800 hover:bg-slate-800/50 cursor-pointer">
+                                <label class="flex items-center space-x-3 p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 cursor-pointer">
                                     <input type="checkbox" id="chk3" onchange="evaluateChecklist()" class="w-4 h-4 text-ipuc-cyan rounded">
-                                    <span class="text-xs text-slate-200">Violación del Manual de Imagen Corporativa (Logo distorsionado/sin colores institucionales).</span>
+                                    <span class="text-xs text-slate-200">Imagen Corporativa (Logo distorsionado/sin colores corporativos).</span>
                                 </label>
 
-                                <div id="checklistFeedback" class="p-3 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400">
-                                    Marca todas las inconsistencias encontradas para obtener retroalimentación.
+                                <div id="checklistFeedback" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400">
+                                    Marca todas las inconsistencias detectadas.
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-                    <span><i class="fa-solid fa-users text-ipuc-cyan mr-1"></i> Taller para interacción directa en grupo durante la capacitación.</span>
-                    <span id="finalFeedback" class="text-ipuc-gold font-semibold">Progresando en la evaluación...</span>
+                <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 flex items-center justify-between mt-2">
+                    <span><i class="fa-solid fa-users text-ipuc-cyan mr-1"></i> Taller interactivo de capacitación local.</span>
+                    <span id="finalFeedback" class="text-ipuc-gold font-semibold text-xs">Evaluando...</span>
                 </div>
             </div>
 
-            <!-- FOOTER CONTROLS BAR (Static across slides) -->
-            <footer class="absolute bottom-0 left-0 w-full h-20 px-16 flex items-center justify-between border-t border-slate-800/80 z-20 bg-slate-950/60 backdrop-blur-md">
+            <!-- FOOTER CONTROLS BAR (Escritorio) -->
+            <footer id="desktopFooter" class="absolute bottom-0 left-0 w-full h-20 px-16 flex items-center justify-between border-t border-slate-800/80 z-20 bg-slate-950/60 backdrop-blur-md">
                 <div class="flex items-center space-x-4">
                     <button onclick="prevSlide()" class="px-5 py-2.5 rounded-xl glass-panel text-white text-sm font-semibold hover:bg-slate-800 transition-all flex items-center space-x-2 border border-slate-700">
                         <i class="fa-solid fa-chevron-left"></i>
@@ -764,13 +745,10 @@
                     </button>
                 </div>
 
-                <!-- SLIDE PROGRESS DOTS / GRID -->
-                <div id="slideDots" class="flex items-center space-x-3">
-                    <!-- Dynamic Dots generated by JS -->
-                </div>
+                <div id="slideDots" class="flex items-center space-x-3"></div>
 
                 <div class="flex items-center space-x-4">
-                    <button onclick="toggleQuickMenu()" class="p-3 rounded-xl glass-panel text-slate-300 hover:text-white hover:bg-slate-800 transition-all border border-slate-700" title="Menú de Navegación">
+                    <button onclick="toggleQuickMenu()" class="p-3 rounded-xl glass-panel text-slate-300 hover:text-white hover:bg-slate-800 transition-all border border-slate-700" title="Índice Rápido">
                         <i class="fa-solid fa-table-cells"></i>
                     </button>
                     <button onclick="toggleFullScreen()" class="p-3 rounded-xl glass-panel text-slate-300 hover:text-white hover:bg-slate-800 transition-all border border-slate-700" title="Pantalla Completa">
@@ -780,9 +758,9 @@
             </footer>
 
             <!-- QUICK JUMP MODAL MENU -->
-            <div id="quickMenu" class="absolute inset-0 bg-slate-950/90 backdrop-blur-xl z-50 flex flex-col justify-between p-16 opacity-0 pointer-events-none transition-all duration-300">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-6">
-                    <h3 class="text-3xl font-bold text-white flex items-center">
+            <div id="quickMenu" class="fixed lg:absolute inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex flex-col justify-between p-6 lg:p-16 opacity-0 pointer-events-none transition-all duration-300">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4 lg:pb-6">
+                    <h3 class="text-xl lg:text-3xl font-bold text-white flex items-center">
                         <i class="fa-solid fa-compass text-ipuc-cyan mr-3"></i> Índice de Diapositivas
                     </h3>
                     <button onclick="toggleQuickMenu()" class="text-slate-400 hover:text-white text-2xl">
@@ -790,46 +768,54 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-4 gap-6 my-auto" id="quickMenuGrid">
-                    <!-- Populated dynamically by JS -->
-                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 my-auto custom-scroll overflow-y-auto max-h-[70vh] py-4" id="quickMenuGrid"></div>
 
-                <div class="text-center text-sm text-slate-500 pt-6 border-t border-slate-800">
-                    Presiona <kbd class="px-2 py-1 bg-slate-800 rounded text-slate-300">ESC</kbd> o clic en cerrar para volver.
+                <div class="text-center text-xs lg:text-sm text-slate-500 pt-4 border-t border-slate-800">
+                    Selecciona cualquier diapositiva para saltar directamente.
                 </div>
             </div>
 
         </div>
     </div>
 
+    <!-- CONTROLES FLOTANTES MÓVILES -->
+    <div class="mobile-bottom-nav">
+        <button onclick="prevSlide()" class="text-slate-200 text-lg p-2"><i class="fa-solid fa-chevron-left"></i></button>
+        <span id="mobileCounter" class="text-xs font-bold text-ipuc-cyan font-mono">01 / 08</span>
+        <button onclick="nextSlide()" class="text-slate-200 text-lg p-2"><i class="fa-solid fa-chevron-right"></i></button>
+        <button onclick="toggleQuickMenu()" class="text-ipuc-gold text-lg p-2 border-l border-slate-700 pl-3"><i class="fa-solid fa-table-cells"></i></button>
+    </div>
+
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // State variables
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide');
         const totalSlides = slides.length;
         let score = 0;
         let answeredQuestions = {};
 
-        // DOM Elements
         const slideStage = document.getElementById('slideStage');
         const slideCounter = document.getElementById('slideCounter');
+        const mobileCounter = document.getElementById('mobileCounter');
         const slideTitleHeader = document.getElementById('slideTitleHeader');
         const slideDots = document.getElementById('slideDots');
         const quickMenuGrid = document.getElementById('quickMenuGrid');
 
-        // Automatic 16:9 Aspect Ratio Scaling based on Window Dimensions
         function autoScaleStage() {
-            const targetWidth = 1920;
-            const targetHeight = 1080;
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
+            if (window.innerWidth >= 1024) {
+                const targetWidth = 1920;
+                const targetHeight = 1080;
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
 
-            const scaleX = windowWidth / targetWidth;
-            const scaleY = windowHeight / targetHeight;
-            const scale = Math.min(scaleX, scaleY) * 0.96; // 96% fit with safety padding
+                const scaleX = windowWidth / targetWidth;
+                const scaleY = windowHeight / targetHeight;
+                const scale = Math.min(scaleX, scaleY) * 0.96;
 
-            slideStage.style.transform = `scale(${scale})`;
+                slideStage.style.transform = `scale(${scale})`;
+            } else {
+                slideStage.style.transform = 'none';
+            }
         }
 
         window.addEventListener('resize', autoScaleStage);
@@ -840,7 +826,6 @@
             updateSlideUI();
         });
 
-        // Navigation Functions
         function goToSlide(index) {
             if (index < 0 || index >= totalSlides) return;
             
@@ -850,6 +835,7 @@
 
             updateSlideUI();
             closeQuickMenu();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function nextSlide() {
@@ -865,16 +851,14 @@
         }
 
         function updateSlideUI() {
-            // Update counter
             const slideNumStr = String(currentSlide + 1).padStart(2, '0');
             const totalNumStr = String(totalSlides).padStart(2, '0');
             slideCounter.textContent = `${slideNumStr} / ${totalNumStr}`;
+            mobileCounter.textContent = `${slideNumStr} / ${totalNumStr}`;
 
-            // Update Header Title
             const title = slides[currentSlide].getAttribute('data-title') || 'IPUC';
             slideTitleHeader.textContent = title;
 
-            // Update Dots
             const dots = slideDots.querySelectorAll('button');
             dots.forEach((dot, idx) => {
                 if (idx === currentSlide) {
@@ -900,15 +884,15 @@
             slides.forEach((slide, idx) => {
                 const title = slide.getAttribute('data-title') || `Slide ${idx + 1}`;
                 const card = document.createElement('div');
-                card.className = 'glass-card p-6 rounded-xl cursor-pointer border border-slate-800 hover:border-ipuc-cyan transition-all flex flex-col justify-between h-36';
+                card.className = 'glass-card p-4 lg:p-6 rounded-xl cursor-pointer border border-slate-800 hover:border-ipuc-cyan transition-all flex flex-col justify-between h-28 lg:h-36';
                 card.onclick = () => goToSlide(idx);
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
-                        <span class="text-xs text-ipuc-cyan font-mono font-bold">SLIDE ${String(idx + 1).padStart(2, '0')}</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 text-xs"></i>
+                        <span class="text-[10px] lg:text-xs text-ipuc-cyan font-mono font-bold">SLIDE ${String(idx + 1).padStart(2, '0')}</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 text-[10px]"></i>
                     </div>
-                    <h4 class="text-base font-bold text-white line-clamp-2">${title}</h4>
-                    <span class="text-[10px] text-slate-400 uppercase tracking-widest">Ir a Diapositiva</span>
+                    <h4 class="text-xs lg:text-base font-bold text-white line-clamp-2">${title}</h4>
+                    <span class="text-[9px] lg:text-[10px] text-slate-400 uppercase tracking-widest">Ver Diapositiva</span>
                 `;
                 quickMenuGrid.appendChild(card);
             });
@@ -933,7 +917,7 @@
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error attempting fullscreen: ${err.message}`);
+                    console.log(`Error: ${err.message}`);
                 });
             } else {
                 if (document.exitFullscreen) {
@@ -942,18 +926,13 @@
             }
         }
 
-        // Keyboard Controls
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === 'Space') {
-                nextSlide();
-            } else if (e.key === 'ArrowLeft') {
-                prevSlide();
-            } else if (e.key === 'Escape') {
-                closeQuickMenu();
-            }
+            if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === 'Escape') closeQuickMenu();
         });
 
-        // WORKSHOP / TALLER INTERACTIVO LOGIC
+        /* WORKSHOP LOGIC */
         function switchWorkshopTab(tabNum) {
             const tab1 = document.getElementById('workshopTab1');
             const tab2 = document.getElementById('workshopTab2');
@@ -963,13 +942,13 @@
             if (tabNum === 1) {
                 tab1.classList.remove('hidden');
                 tab2.classList.add('hidden');
-                btn1.className = 'px-6 py-3 font-semibold text-sm border-b-2 border-ipuc-cyan text-ipuc-cyan flex items-center space-x-2';
-                btn2.className = 'px-6 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2';
+                btn1.className = 'px-4 lg:px-6 py-2.5 font-semibold text-xs lg:text-sm border-b-2 border-ipuc-cyan text-ipuc-cyan flex items-center space-x-2';
+                btn2.className = 'px-4 lg:px-6 py-2.5 font-semibold text-xs lg:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2';
             } else {
                 tab2.classList.remove('hidden');
                 tab1.classList.add('hidden');
-                btn2.className = 'px-6 py-3 font-semibold text-sm border-b-2 border-ipuc-cyan text-ipuc-cyan flex items-center space-x-2';
-                btn1.className = 'px-6 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2';
+                btn2.className = 'px-4 lg:px-6 py-2.5 font-semibold text-xs lg:text-sm border-b-2 border-ipuc-cyan text-ipuc-cyan flex items-center space-x-2';
+                btn1.className = 'px-4 lg:px-6 py-2.5 font-semibold text-xs lg:text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2';
             }
         }
 
@@ -978,16 +957,16 @@
             const userVal = selectElem.value;
 
             if (userVal === correctAnswer) {
-                selectElem.className = 'bg-green-950 border border-green-500 rounded-lg text-xs p-2.5 text-green-200 outline-none font-bold';
+                selectElem.className = 'bg-green-950 border border-green-500 rounded-lg text-xs p-2 text-green-200 outline-none font-bold w-full sm:w-auto';
                 if (!answeredQuestions[qId]) {
                     answeredQuestions[qId] = true;
-                    score += 15;
+                    score += 20;
                 }
             } else if (userVal !== '') {
-                selectElem.className = 'bg-red-950 border border-red-500 rounded-lg text-xs p-2.5 text-red-200 outline-none';
+                selectElem.className = 'bg-red-950 border border-red-500 rounded-lg text-xs p-2 text-red-200 outline-none w-full sm:w-auto';
                 if (answeredQuestions[qId]) {
                     answeredQuestions[qId] = false;
-                    score = Math.max(0, score - 15);
+                    score = Math.max(0, score - 20);
                 }
             }
             updateScoreUI();
@@ -1005,15 +984,15 @@
             if (chk3) checklistScore += 15;
 
             if (chk1 && chk2 && chk3) {
-                feedback.className = 'p-3 rounded-lg bg-green-950/80 border border-green-500 text-xs text-green-200 font-semibold flex items-center space-x-2';
-                feedback.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 text-lg"></i><span>¡Excelente Auditoría! Has identificado todos los errores ortográficos, legales e institucionales.</span>';
+                feedback.className = 'p-2.5 rounded-lg bg-green-950/80 border border-green-500 text-xs text-green-200 font-semibold flex items-center space-x-2';
+                feedback.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 text-base"></i><span>¡Excelente Auditoría! Has detectado todos los errores.</span>';
+                confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
             } else {
-                feedback.className = 'p-3 rounded-lg bg-amber-950/60 border border-amber-500/60 text-xs text-amber-200';
-                feedback.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Sigue analizando. Faltan detalles por detectar en el borrador.';
+                feedback.className = 'p-2.5 rounded-lg bg-amber-950/60 border border-amber-500/60 text-xs text-amber-200';
+                feedback.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Faltan detalles por detectar en el borrador.';
             }
 
-            // Combine scores
-            const baseTab1Score = Object.keys(answeredQuestions).filter(k => answeredQuestions[k]).length * 15;
+            const baseTab1Score = Object.keys(answeredQuestions).filter(k => answeredQuestions[k]).length * 20;
             score = baseTab1Score + checklistScore;
             updateScoreUI();
         }
@@ -1022,25 +1001,25 @@
             document.getElementById('workshopScore').textContent = score;
             const finalFeedback = document.getElementById('finalFeedback');
             if (score >= 90) {
-                finalFeedback.textContent = '¡Comité Capacitado con Excelencia! (100%)';
-                finalFeedback.className = 'text-green-400 font-bold';
-            } else if (score >= 50) {
-                finalFeedback.textContent = 'Buen avance. Revisa los detalles restantes.';
-                finalFeedback.className = 'text-ipuc-gold font-semibold';
+                finalFeedback.textContent = '¡Excelente nivel de aprendizaje! (100%)';
+                finalFeedback.className = 'text-green-400 font-bold text-xs';
+            } else if (score >= 40) {
+                finalFeedback.textContent = 'Buen avance. Sigue evaluando.';
+                finalFeedback.className = 'text-ipuc-gold font-semibold text-xs';
             } else {
-                finalFeedback.textContent = 'En progreso del taller...';
-                finalFeedback.className = 'text-slate-400 font-semibold';
+                finalFeedback.textContent = 'Evaluación en progreso...';
+                finalFeedback.className = 'text-slate-400 font-semibold text-xs';
             }
         }
 
         function resetWorkshop() {
             score = 0;
             answeredQuestions = {};
-            ['q1', 'q2', 'q3', 'q4'].forEach(id => {
+            ['q1', 'q2', 'q3'].forEach(id => {
                 const elem = document.getElementById(id);
                 if (elem) {
                     elem.value = '';
-                    elem.className = 'bg-slate-950 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 focus:border-ipuc-cyan outline-none';
+                    elem.className = 'bg-slate-950 border border-slate-700 rounded-lg text-xs p-2 text-slate-200 focus:border-ipuc-cyan outline-none w-full sm:w-auto';
                 }
             });
             ['chk1', 'chk2', 'chk3'].forEach(id => {
@@ -1048,8 +1027,8 @@
                 if (chk) chk.checked = false;
             });
             const feedback = document.getElementById('checklistFeedback');
-            feedback.className = 'p-3 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400';
-            feedback.innerHTML = 'Marca todas las inconsistencias encontradas para obtener retroalimentación.';
+            feedback.className = 'p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400';
+            feedback.innerHTML = 'Marca todas las inconsistencias detectadas.';
             updateScoreUI();
         }
     </script>
